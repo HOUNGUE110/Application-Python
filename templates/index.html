@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DarkLuck — Joueur & Sponsors</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 940px; margin: 24px auto; padding: 0 16px; background: #f4f6f9; color: #222; }
+    h1 { margin-bottom: 6px; }
+    .nav-tabs, .sub-tabs { display: flex; gap: 10px; margin: 14px 0; }
+    .tab-btn { padding: 10px 18px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; font-weight: bold; }
+    .tab-btn.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+    .sub-btn { padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; cursor: pointer; font-weight: bold; font-size: 13px; }
+    .sub-btn.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+    .card { background: #fff; border-radius: 8px; padding: 18px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 6px; margin: 14px 0; }
+    .num-btn { padding: 10px 0; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-weight: bold; }
+    .num-btn.rouge-clair { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+    .num-btn.selected { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 12px; }
+    input, select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    button.primary { background: #16a34a; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button.draw-auto { background: #1d4ed8; color: #fff; border: none; padding: 11px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button.draw-manual { background: #7c3aed; color: #fff; border: none; padding: 11px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button.secondary { background: #e5e7eb; color: #222; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    button.danger { background: #dc2626; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    button.ok-btn { background: #16a34a; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .info { background: #eff6ff; padding: 10px 12px; border-radius: 6px; margin-top: 10px; font-size: 14px; line-height: 1.5; }
+    .manual-box { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 12px; border-radius: 6px; margin-top: 14px; }
+    .balls { display: flex; gap: 10px; margin: 12px 0; }
+    .ball { width: 42px; height: 42px; border-radius: 50%; background: #1d4ed8; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
+    .error { color: #dc2626; font-weight: bold; margin-top: 8px; }
+    .success { color: #15803d; font-weight: bold; margin-top: 8px; }
+    li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>DarkLuck (3 à 65)</h1>
+
+  <div class="nav-tabs">
+    <button type="button" id="tab-joueur" class="tab-btn active" onclick="changerOnglet('JOUEUR')">Espace Joueur</button>
+    <button type="button" id="tab-sponsors" class="tab-btn" onclick="changerOnglet('SPONSORS')">Espace Sponsors</button>
+  </div>
+
+  <div id="erreur" class="error"></div>
+  <div id="message-ok" class="success"></div>
+
+  <!-- ESPACE JOUEUR -->
+  <div id="vue-joueur">
+    <div class="card" id="auth-box">
+      <h2>Compte Joueur</h2>
+      <div class="sub-tabs">
+        <button type="button" id="sub-login" class="sub-btn active" onclick="changerModeAuth('LOGIN')">Connexion</button>
+        <button type="button" id="sub-register" class="sub-btn" onclick="changerModeAuth('REGISTER')">Inscription</button>
+      </div>
+
+      <div id="form-login">
+        <div class="controls">
+          <input type="email" id="login-email" placeholder="votre@email.com" required />
+          <input type="password" id="login-password" placeholder="Mot de passe" required />
+          <button type="button" class="primary" onclick="connexionJoueur()">Se connecter</button>
+        </div>
+      </div>
+
+      <div id="form-register" style="display:none;">
+        <div class="controls">
+          <input type="email" id="reg-email" placeholder="votre@email.com" required />
+          <input type="password" id="reg-password" placeholder="Mot de passe (8+ car., A-Z, a-z, 0-9, spécial)" required />
+          <input type="text" id="reg-pseudo" placeholder="Pseudo (optionnel)" />
+          <input type="text" id="reg-promo" placeholder="Code promo (optionnel)" />
+          <button type="button" class="primary" onclick="inscriptionJoueur()">Créer mon compte</button>
+        </div>
+        <div class="info">
+          Mot de passe : min. <strong>8 caractères</strong>, avec <strong>1 majuscule</strong>, <strong>1 minuscule</strong>, <strong>1 chiffre</strong> et <strong>1 caractère spécial</strong>.<br/>
+          Inscription avec code promo : <strong>+1.00 USD</strong> bonus non retirable pour vous, <strong>+0.34 USD</strong> bonus non retirable pour le parrain (max <strong>2 parrainages / jour</strong>).
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="profil-box" style="display:none;">
+      <div class="controls" style="justify-content: space-between;">
+        <div>
+          <h2 style="margin:0;">Compte : <span id="j-pseudo"></span> (<span id="j-email"></span>)</h2>
+        </div>
+        <button type="button" class="secondary" onclick="deconnexionJoueur()">Déconnexion</button>
+      </div>
+
+      <div class="info" id="j-soldes"></div>
+
+      <div id="promo-section" class="controls" style="margin-top: 14px;"></div>
+
+      <div class="controls" style="margin-top: 14px;">
+        <label>Montant (USD) : <input type="number" id="tx-montant" value="5" min="0.5" step="0.5" /></label>
+        <input type="text" id="tx-note" placeholder="Référence / note (optionnel)" />
+        <button type="button" class="primary" onclick="demanderTransaction('DEPOT')">Demander un Dépôt</button>
+        <button type="button" class="secondary" onclick="demanderTransaction('RETRAIT')">Demander un Retrait</button>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <strong>Mes demandes de dépôt / retrait (GMT) :</strong>
+        <ul id="liste-mes-tx"></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Jouer un ticket (2 à 7 numéros — Mise 1 à 15 USDT)</h2>
+      <div id="grille-legende" class="info" style="margin-top:6px;"></div>
+      <div id="grille" class="grille"></div>
+
+      <div class="info" id="resume-ticket">
+        Numéros : <strong>aucun</strong> | Liaisons : <strong>0</strong> | Mise/liaison : <strong>0.00 USDT</strong><br/>
+        Gain (1 liaison) : <strong>0.00 USDT</strong> | Gain max (toutes liaisons × 100) : <strong>0.00 USDT</strong>
+      </div>
+
+      <div class="controls">
+        <label>Mise (1 à 15 USDT) : <input type="number" id="mise" value="1" min="1" max="15" step="0.5" /></label>
+        <button type="button" class="primary" onclick="ajouterTicket()">Valider mon ticket</button>
+        <button type="button" class="secondary" onclick="resetSelection()">Effacer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Tickets en attente (<span id="nb-tickets">0</span>) — Annulation possible à 3/4 du montant</h2>
+      <ul id="liste-tickets"></ul>
+    </div>
+  </div>
+
+  <!-- ESPACE SPONSORS -->
+  <div id="vue-sponsors" style="display:none;">
+    <div class="card" id="sponsors-login-box">
+      <h2>Connexion Sponsors</h2>
+      <div class="controls">
+        <input type="password" id="sponsors-password" placeholder="Code d'accès Sponsors" />
+        <button type="button" class="primary" onclick="connexionSponsors()">Se connecter</button>
+      </div>
+    </div>
+
+    <div class="card" id="sponsors-panel-box" style="display:none;">
+      <div class="controls" style="justify-content: space-between;">
+        <h2 style="margin:0;">Contrôle Sponsors</h2>
+        <button type="button" class="secondary" onclick="deconnexionSponsors()">Déconnexion</button>
+      </div>
+
+      <div class="info" style="margin-top: 14px;">
+        <strong>Nouveaux joueurs du jour (<span id="sp-nb-nouveaux">0</span> — GMT) :</strong>
+        <ul id="sp-liste-nouveaux"></ul>
+      </div>
+
+      <div class="info" style="margin-top: 14px;">
+        <strong>Dépôts & Retraits (validation manuelle — GMT) :</strong>
+        <ul id="sp-liste-tx"></ul>
+      </div>
+
+      <div class="info" style="margin-top: 14px;">
+        <strong>Tickets en attente et numéros choisis (<span id="sponsors-nb-tickets">0</span>) :</strong>
+        <ul id="sponsors-liste-tickets"></ul>
+        <div id="sponsors-top-numeros" style="margin-top: 8px;"></div>
+      </div>
+
+      <div class="controls">
+        <label>Pool moins joués (Auto) :
+          <select id="pool">
+            <option value="5">5 (Strict)</option>
+            <option value="10" selected>10 (Équilibré)</option>
+            <option value="15">15 (Plus aléatoire)</option>
+          </select>
+        </label>
+        <button type="button" class="draw-auto" onclick="lancerTirage('AUTO')">Lancer Tirage Automatique</button>
+      </div>
+
+      <div class="manual-box">
+        <strong>Tirage Manuel — Saisir 5 numéros gagnants (3 à 65) :</strong>
+        <div class="controls">
+          <input type="text" id="nums-manuels" placeholder="Ex : 5, 18, 29, 44, 61" size="28" />
+          <button type="button" class="draw-manual" onclick="lancerTirage('MANUEL')">Valider Tirage Manuel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTATS & HISTORIQUE -->
+  <div class="card" id="carte-resultats" style="display:none;">
+    <h2>Dernier tirage</h2>
+    <div id="boules-tirage" class="balls"></div>
+    <div id="bilan-caisse" class="info" style="display:none;"></div>
+    <ul id="details-resultats" style="display:none;"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Historique des tirages (GMT)</h2>
+    <ul id="liste-historique"></ul>
+  </div>
+
+  <script>
+    const MIN_NUM = 3;
+    const MAX_NUM = 65;
+    const MAX_NUM_TICKET = 7;
+    const FACTEUR = 100;
+    let selection = [];
+    let tickets = [];
+    let joueurActuel = null;
+    let isSponsor = false;
+    let numsRougeClair = new Set();
+
+    function afficherErreur(msg) {
+      document.getElementById("message-ok").textContent = "";
+      document.getElementById("erreur").textContent = msg || "";
+    }
+
+    function afficherOk(msg) {
+      document.getElementById("erreur").textContent = "";
+      document.getElementById("message-ok").textContent = msg || "";
+    }
+
+    function changerModeAuth(mode) {
+      afficherErreur("");
+      const estLogin = mode === "LOGIN";
+      document.getElementById("form-login").style.display = estLogin ? "block" : "none";
+      document.getElementById("form-register").style.display = estLogin ? "none" : "block";
+      document.getElementById("sub-login").classList.toggle("active", estLogin);
+      document.getElementById("sub-register").classList.toggle("active", !estLogin);
+    }
+
+    function changerOnglet(onglet) {
+      afficherErreur("");
+      afficherOk("");
+      const estJoueur = onglet === "JOUEUR";
+      document.getElementById("vue-joueur").style.display = estJoueur ? "block" : "none";
+      document.getElementById("vue-sponsors").style.display = estJoueur ? "none" : "block";
+      document.getElementById("tab-joueur").classList.toggle("active", estJoueur);
+      document.getElementById("tab-sponsors").classList.toggle("active", !estJoueur);
+      if (!estJoueur && isSponsor) {
+        chargerSponsorsDashboard();
+      }
+    }
+
+    async function chargerGrilleMeta() {
+      const res = await fetch("/api/grille-meta");
+      if (!res.ok) return;
+      const data = await res.json();
+      numsRougeClair = new Set();
+      if (typeof data.jour_gmt === "number" && data.jour_gmt >= MIN_NUM && data.jour_gmt <= MAX_NUM) {
+        numsRougeClair.add(data.jour_gmt);
+      }
+      (data.plus_tires || []).forEach(n => numsRougeClair.add(n));
+
+      const plusTireTxt = (data.plus_tires && data.plus_tires.length > 0)
+        ? `${data.plus_tires.join(", ")} (${data.max_occurrences}×)`
+        : "aucun tirage";
+      document.getElementById("grille-legende").innerHTML =
+        `Repères en rouge clair : jour du mois (<strong>${data.jour_gmt}</strong>) et numéro(s) le(s) plus tiré(s) (<strong>${plusTireTxt}</strong>).`;
+
+      appliquerStyleGrille();
+    }
+
+    function appliquerStyleGrille() {
+      document.querySelectorAll(".num-btn").forEach(btn => {
+        const n = Number(btn.dataset.num);
+        btn.classList.toggle("rouge-clair", numsRougeClair.has(n));
+        btn.classList.toggle("selected", selection.includes(n));
+      });
+    }
+
+    function majProfilJoueur() {
+      const authBox = document.getElementById("auth-box");
+      const profilBox = document.getElementById("profil-box");
+      if (!joueurActuel) {
+        authBox.style.display = "block";
+        profilBox.style.display = "none";
+        return;
+      }
+      authBox.style.display = "none";
+      profilBox.style.display = "block";
+      document.getElementById("j-pseudo").textContent = joueurActuel.pseudo;
+      document.getElementById("j-email").textContent = joueurActuel.email;
+      document.getElementById("j-soldes").innerHTML =
+        `Solde retirable : <strong>${Number(joueurActuel.solde_retirable).toFixed(2)} USD</strong> | ` +
+        `Solde bonus (jeu uniquement) : <strong>${Number(joueurActuel.solde_bonus).toFixed(2)} USD</strong> | ` +
+        `Tickets achetés : <strong>${joueurActuel.tickets_achetes}</strong> | ` +
+        `Parrainages aujourd'hui : <strong>${joueurActuel.parrainages_aujourdhui}/2</strong>`;
+
+      const promoDiv = document.getElementById("promo-section");
+      if (joueurActuel.code_promo) {
+        promoDiv.innerHTML = `Votre code promo : <strong>${joueurActuel.code_promo}</strong>`;
+      } else if (joueurActuel.peut_creer_promo) {
+        promoDiv.innerHTML =
+          `<input type="text" id="nouveau-code-promo" placeholder="Code perso (ex: LOTO26)" />` +
+          `<button type="button" class="primary" onclick="creerCodePromo()">Créer mon code promo</button>`;
+      } else {
+        const reste = Math.max(0, 15 - joueurActuel.tickets_achetes);
+        promoDiv.innerHTML = `Code promo : débloqué après <strong>15 tickets</strong> (encore <strong>${reste}</strong> ticket(s)).`;
+      }
+      afficherTickets();
+    }
+
+    async function verifierJoueurSession() {
+      const res = await fetch("/api/joueur/session");
+      const data = await res.json();
+      joueurActuel = data.joueur || null;
+      majProfilJoueur();
+      if (joueurActuel) {
+        await chargerMesTransactions();
+      }
+    }
+
+    async function connexionJoueur() {
+      afficherErreur("");
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      const res = await fetch("/api/joueur/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Erreur de connexion.");
+        return;
+      }
+      joueurActuel = data.joueur;
+      document.getElementById("login-password").value = "";
+      majProfilJoueur();
+      await chargerMesTransactions();
+      afficherOk("Connecté avec succès !");
+    }
+
+    async function inscriptionJoueur() {
+      afficherErreur("");
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const pseudo = document.getElementById("reg-pseudo").value.trim();
+      const code_promo = document.getElementById("reg-promo").value.trim();
+
+      const res = await fetch("/api/joueur/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, pseudo, code_promo })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Erreur lors de l'inscription.");
+        return;
+      }
+      joueurActuel = data.joueur;
+      document.getElementById("reg-password").value = "";
+      document.getElementById("reg-promo").value = "";
+      majProfilJoueur();
+      await chargerMesTransactions();
+      if (isSponsor) await chargerSponsorsDashboard();
+      afficherOk("Compte créé avec succès !");
+    }
+
+    async function deconnexionJoueur() {
+      await fetch("/api/joueur/logout", { method: "POST" });
+      joueurActuel = null;
+      majProfilJoueur();
+      afficherOk("Déconnecté.");
+    }
+
+    async function creerCodePromo() {
+      afficherErreur("");
+      const code_promo = document.getElementById("nouveau-code-promo").value.trim();
+      const res = await fetch("/api/joueur/creer-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code_promo })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Impossible de créer le code promo.");
+        return;
+      }
+      joueurActuel = data.joueur;
+      majProfilJoueur();
+      afficherOk(`Code promo ${joueurActuel.code_promo} activé !`);
+    }
+
+    async function demanderTransaction(type_tx) {
+      afficherErreur("");
+      const montant = parseFloat(document.getElementById("tx-montant").value);
+      const note = document.getElementById("tx-note").value.trim();
+      const res = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type_tx, montant, note })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Erreur sur la demande.");
+        return;
+      }
+      joueurActuel = data.joueur;
+      document.getElementById("tx-note").value = "";
+      majProfilJoueur();
+      await chargerMesTransactions();
+      if (isSponsor) await chargerSponsorsDashboard();
+      afficherOk(`Demande de ${type_tx} envoyée (en attente de validation Sponsors).`);
+    }
+
+    async function chargerMesTransactions() {
+      if (!joueurActuel) return;
+      const res = await fetch("/api/transactions");
+      if (!res.ok) return;
+      const data = await res.json();
+      const ul = document.getElementById("liste-mes-tx");
+      ul.innerHTML = "";
+      (data.transactions || []).forEach(tx => {
+        const li = document.createElement("li");
+        li.textContent = `#${tx.id} — ${tx.type_tx} : ${Number(tx.montant).toFixed(2)} USD [${tx.statut}] (${tx.date_gmt}) ${tx.note ? "(" + tx.note + ")" : ""}`;
+        ul.appendChild(li);
+      });
+    }
+
+    async function verifierSponsors() {
+      const res = await fetch("/api/sponsors/status");
+      const data = await res.json();
+      isSponsor = Boolean(data.is_sponsor);
+      majAffichageSponsors();
+      if (isSponsor) {
+        await chargerSponsorsDashboard();
+      }
+    }
+
+    function majAffichageSponsors() {
+      document.getElementById("sponsors-login-box").style.display = isSponsor ? "none" : "block";
+      document.getElementById("sponsors-panel-box").style.display = isSponsor ? "block" : "none";
+      document.getElementById("bilan-caisse").style.display = isSponsor ? "block" : "none";
+      document.getElementById("details-resultats").style.display = isSponsor ? "block" : "none";
+    }
+
+    async function connexionSponsors() {
+      const password = document.getElementById("sponsors-password").value;
+      const res = await fetch("/api/sponsors/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Connexion refusée.");
+        return;
+      }
+      isSponsor = true;
+      document.getElementById("sponsors-password").value = "";
+      majAffichageSponsors();
+      afficherOk("Connecté à l'espace Sponsors.");
+      await chargerSponsorsDashboard();
+      await chargerHistorique();
+    }
+
+    async function deconnexionSponsors() {
+      await fetch("/api/sponsors/logout", { method: "POST" });
+      isSponsor = false;
+      majAffichageSponsors();
+      afficherOk("Déconnecté de l'espace Sponsors.");
+      await chargerHistorique();
+    }
+
+    async function chargerSponsorsDashboard() {
+      if (!isSponsor) return;
+      const res = await fetch("/api/sponsors/dashboard");
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const nouveaux = data.nouveaux_joueurs_jour || [];
+      document.getElementById("sp-nb-nouveaux").textContent = nouveaux.length;
+      const ulNouv = document.getElementById("sp-liste-nouveaux");
+      ulNouv.innerHTML = nouveaux.length
+        ? nouveaux.map(j => `<li><strong>${j.pseudo}</strong> (${j.email}) — Retirable: ${Number(j.solde_retirable).toFixed(2)} USD | Bonus: ${Number(j.solde_bonus).toFixed(2)} USD (${j.date_gmt}) ${j.code_promo ? "| Promo: " + j.code_promo : ""}</li>`).join("")
+        : "<li>Aucun nouveau joueur aujourd'hui.</li>";
+
+      const txs = data.transactions || [];
+      const ulTx = document.getElementById("sp-liste-tx");
+      ulTx.innerHTML = txs.length
+        ? txs.map(tx => {
+            const boutons = tx.statut === "EN_ATTENTE"
+              ? ` <button type="button" class="ok-btn" onclick="traiterTx(${tx.id}, 'VALIDER')">Valider</button> <button type="button" class="danger" onclick="traiterTx(${tx.id}, 'REJETER')">Rejeter</button>`
+              : "";
+            return `<li>#${tx.id} — <strong>${tx.type_tx}</strong> de <strong>${Number(tx.montant).toFixed(2)} USD</strong> par ${tx.pseudo} (${tx.email}) — [${tx.statut}] (${tx.date_gmt})${boutons}</li>`;
+          }).join("")
+        : "<li>Aucune demande de dépôt ou retrait.</li>";
+
+      const liste = data.tickets || [];
+      document.getElementById("sponsors-nb-tickets").textContent = liste.length;
+      const ulT = document.getElementById("sponsors-liste-tickets");
+      ulT.innerHTML = liste.length
+        ? liste.map(t => `<li><strong>${t.code_ticket}</strong> (${t.joueur}) — Numéros : <strong>[${t.numeros.join(", ")}]</strong> | Mise : ${t.mise} USDT (${t.liaisons_jouees} liaisons)</li>`).join("")
+        : "<li>Aucun ticket en attente.</li>";
+
+      const topDiv = document.getElementById("sponsors-top-numeros");
+      const top = (data.top_numeros || []).slice(0, 10);
+      topDiv.innerHTML = top.length
+        ? "Numéros les plus joués : " + top.map(x => `<strong>${x.numero}</strong> (${x.occurrences}×)`).join(", ")
+        : "";
+    }
+
+    async function traiterTx(txId, action) {
+      afficherErreur("");
+      const res = await fetch(`/api/sponsors/transactions/${txId}/${action}`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Erreur lors du traitement.");
+        return;
+      }
+      afficherOk(`Transaction #${txId} : ${data.statut}.`);
+      await chargerSponsorsDashboard();
+      if (joueurActuel) {
+        await verifierJoueurSession();
+      }
+    }
+
+    function initGrille() {
+      const grille = document.getElementById("grille");
+      if (!grille) return;
+      grille.innerHTML = "";
+      for (let n = MIN_NUM; n <= MAX_NUM; n++) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "num-btn";
+        btn.dataset.num = String(n);
+        btn.textContent = n;
+        btn.onclick = () => toggleNumero(n);
+        grille.appendChild(btn);
+      }
+      appliquerStyleGrille();
+    }
+
+    function toggleNumero(n) {
+      afficherErreur("");
+      const index = selection.indexOf(n);
+      if (index !== -1) {
+        selection.splice(index, 1);
+      } else {
+        if (selection.length >= MAX_NUM_TICKET) {
+          afficherErreur(`Maximum ${MAX_NUM_TICKET} numéros par ticket.`);
+          return;
+        }
+        selection.push(n);
+      }
+      selection.sort((a, b) => a - b);
+      appliquerStyleGrille();
+      mettreAJourResume();
+    }
+
+    function calculerLiaisons(k) {
+      return k >= 2 ? (k * (k - 1)) / 2 : 0;
+    }
+
+    function mettreAJourResume() {
+      const miseInput = document.getElementById("mise");
+      const resumeEl = document.getElementById("resume-ticket");
+      if (!miseInput || !resumeEl) return;
+
+      const k = selection.length;
+      const liaisons = calculerLiaisons(k);
+      const mise = parseFloat(miseInput.value) || 0;
+
+      const miseParLiaison = liaisons > 0 ? (mise / liaisons) : 0;
+      const gainUneLiaison = miseParLiaison * 1 * FACTEUR;
+      const gainMaxTotal = miseParLiaison * liaisons * FACTEUR;
+
+      resumeEl.innerHTML =
+        `Numéros : <strong>${k > 0 ? selection.join(", ") : "aucun"}</strong> | ` +
+        `Liaisons : <strong>${liaisons}</strong> | ` +
+        `Mise/liaison : <strong>${miseParLiaison.toFixed(2)} USDT</strong><br/>` +
+        `Gain (1 liaison) : <strong>${gainUneLiaison.toFixed(2)} USDT</strong> | ` +
+        `Gain max (${liaisons} liaison${liaisons > 1 ? "s" : ""} × ${FACTEUR}) : <strong>${gainMaxTotal.toFixed(2)} USDT</strong>`;
+    }
+
+    function resetSelection() {
+      selection = [];
+      appliquerStyleGrille();
+      mettreAJourResume();
+    }
+
+    function parserNumsManuels(texte) {
+      const morceaux = texte.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+      return morceaux.map(m => Number(m));
+    }
+
+    async function chargerTickets() {
+      const res = await fetch("/api/tickets");
+      const data = await res.json();
+      tickets = data.tickets || [];
+      afficherTickets();
+    }
+
+    function afficherTickets() {
+      document.getElementById("nb-tickets").textContent = tickets.length;
+      const ul = document.getElementById("liste-tickets");
+      ul.innerHTML = "";
+      tickets.forEach(t => {
+        const peutAnnuler = joueurActuel && t.joueur_id === joueurActuel.id;
+        const btnAnnuler = peutAnnuler
+          ? ` <button type="button" class="danger" onclick="annulerTicket(${t.id})">Annuler (3/4 = ${(Number(t.mise) * 0.75).toFixed(2)} USD)</button>`
+          : "";
+        const li = document.createElement("li");
+        li.innerHTML = `${t.code_ticket} (${t.joueur}) : [${t.numeros.join(", ")}] — Mise : ${t.mise} USDT (${t.liaisons_jouees} liaisons)${btnAnnuler}`;
+        ul.appendChild(li);
+      });
+    }
+
+    async function ajouterTicket() {
+      afficherErreur("");
+      const mise = parseFloat(document.getElementById("mise").value);
+
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numeros: selection, mise })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        afficherErreur(data.error || "Erreur lors de l'ajout du ticket.");
+        return;
+      }
+
+      if (data.joueur) {
+        joueurActuel = data.joueur;
+        majProfilJoueur();
+      }
+      resetSelection();
+      afficherOk(`Ticket ${data.ticket.code_ticket} enregistré.`);
+      await chargerTickets();
+      if (isSponsor) await chargerSponsorsDashboard();
+    }
+
+    async function annulerTicket(ticketId) {
+      afficherErreur("");
+      const res = await fetch(`/api/tickets/${ticketId}/annuler`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        afficherErreur(data.error || "Impossible d'annuler le ticket.");
+        return;
+      }
+      joueurActuel = data.joueur;
+      majProfilJoueur();
+      afficherOk(`Ticket annulé : ${Number(data.remboursement).toFixed(2)} USD remboursés sur votre solde retirable.`);
+      await chargerTickets();
+      if (isSponsor) await chargerSponsorsDashboard();
+    }
+
+    async function lancerTirage(mode) {
+      afficherErreur("");
+      if (tickets.length === 0) {
+        afficherErreur("Aucun ticket en attente pour le tirage.");
+        return;
+      }
+
+      const pool = parseInt(document.getElementById("pool").value, 10);
+      const payload = { mode, pool_securite: pool };
+
+      if (mode === "MANUEL") {
+        const brut = document.getElementById("nums-manuels").value;
+        const nums = parserNumsManuels(brut);
+        if (nums.length !== 5 || nums.some(n => !Number.isInteger(n))) {
+          afficherErreur("Entre exactement 5 nombres entiers séparés par des virgules (ex: 5, 18, 29, 44, 61).");
+          return;
+        }
+        payload.numeros_manuels = nums;
+      }
+
+      const response = await fetch("/tirage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        afficherErreur(data.error || "Erreur lors du tirage.");
+        return;
+      }
+
+      afficherResultats(data);
+      afficherOk(`Tirage #${data.tirage_id} effectué.`);
+      await chargerTickets();
+      await chargerSponsorsDashboard();
+      await chargerHistorique();
+      await chargerGrilleMeta();
+      if (joueurActuel) await verifierJoueurSession();
+    }
+
+    function afficherResultats(data) {
+      document.getElementById("carte-resultats").style.display = "block";
+      const ballsDiv = document.getElementById("boules-tirage");
+      ballsDiv.innerHTML = "";
+      data.tirage.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "ball";
+        div.textContent = n;
+        ballsDiv.appendChild(div);
+      });
+
+      const ul = document.getElementById("details-resultats");
+      ul.innerHTML = "";
+      (data.resultats || []).forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = `Ticket ${r.code_ticket} (${r.joueur}) : ${r.liaisons_gagnantes} liaison(s) gagnante(s) [${r.bons_numeros.join(", ")}] -> Gain : ${r.gain_usdt} USDT (${r.statut})`;
+        ul.appendChild(li);
+      });
+
+      const etiquette = data.mode === "MANUEL" ? "[Python3" : "[Anaconda";
+      document.getElementById("bilan-caisse").innerHTML =
+        `Mode : <strong>${etiquette}</strong> | ` +
+        `Total mises : <strong>${data.total_mises.toFixed(2)} USDT</strong> | ` +
+        `Total gains : <strong>${data.total_gains.toFixed(2)} USDT</strong> | ` +
+        `Solde net : <strong>${data.solde_net.toFixed(2)} USDT</strong>`;
+    }
+
+    async function chargerHistorique() {
+      const res = await fetch("/api/historique");
+      const data = await res.json();
+      const ul = document.getElementById("liste-historique");
+      ul.innerHTML = "";
+      (data.historique || []).forEach(h => {
+        const li = document.createElement("li");
+        const horodatage = h.date_gmt ? ` (${h.date_gmt})` : "";
+        if (isSponsor && h.total_mises !== undefined) {
+          const etiquette = h.mode_tirage === "MANUEL" ? "[Python3" : "[Anaconda";
+          li.textContent = `Tirage #${h.id} ${etiquette} : [${h.numeros_tirage.join(", ")}]${horodatage} — Mises: ${h.total_mises.toFixed(2)} USDT | Gains: ${h.total_gains.toFixed(2)} USDT`;
+        } else {
+          li.textContent = `Tirage #${h.id} : [${h.numeros_tirage.join(", ")}]${horodatage}`;
+        }
+        ul.appendChild(li);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const miseInput = document.getElementById("mise");
+      if (miseInput) {
+        miseInput.addEventListener("input", mettreAJourResume);
+      }
+      initGrille();
+      mettreAJourResume();
+      await chargerGrilleMeta();
+      await verifierJoueurSession();
+      await verifierSponsors();
+      await chargerTickets();
+      await chargerHistorique();
+    });
+  </script>
+</body>
+</html>
